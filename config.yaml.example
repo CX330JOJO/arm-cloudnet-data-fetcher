@@ -1,0 +1,26 @@
+# ARM & CloudNet Data Fetcher Configuration
+# Copy this file to config.yaml and fill in your credentials.
+
+arm:
+  # ARM Data Center API token
+  # Apply at: https://adc.arm.gov/armlive/livedata/home
+  token: "YOUR_ARM_TOKEN_HERE"
+  # Output directory for ARM data
+  output_dir: "./data/arm"
+  # Request timeout in seconds
+  timeout: 300
+  # Number of retries on failure
+  retry_times: 3
+
+cloudnet:
+  # CloudNet API base URL (usually no change needed)
+  base_url: "https://cloudnet.fmi.fi/api"
+  # Output directory for CloudNet data
+  output_dir: "./data/cloudnet"
+  timeout: 300
+  retry_times: 3
+
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
