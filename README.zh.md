@@ -14,6 +14,7 @@
 - **ARM 数据中心** — 从 ARM 全球固定和移动站点下载云雷达（Ka 波段）、激光雷达、微波辐射计、云高仪等产品。
 - **CloudNet 数据门户** — 从欧洲及全球的 ACTRIS CloudNet 站点获取标准化的云雷达、激光雷达和分类产品。
 - **批量 & 日期范围下载** — 自动遍历日期范围，并在遇到临时故障时自动重试。
+- **数据目录** — 快速浏览可用站点、仪器类型，并在下载前探测数据可用性。
 - **命令行 & Python API** — 支持命令行调用或在脚本中导入使用。
 - **可配置** — 支持 YAML 配置文件 + 环境变量覆盖。
 
@@ -132,6 +133,82 @@ cloudnet-fetch --site hyytiala --start 2023-06-01 --end 2023-06-03 --product rad
 
 ---
 
+## 数据目录
+
+不确定数据在**哪里**、有哪些**设备**、**何时**有数据？在下载前使用内置的目录工具先查一查。
+
+执行 `pip install -e .` 后，可使用新命令 `data-catalog`：
+
+### 1. 列出所有站点
+
+```bash
+# 全部站点（ARM + CloudNet）
+data-catalog sites
+
+# 仅 ARM
+data-catalog sites --source arm
+
+# 仅 CloudNet
+data-catalog sites --source cloudnet
+```
+
+### 2. 列出仪器 / 产品类型
+
+```bash
+# ARM 云相关仪器
+data-catalog instruments --source arm
+
+# CloudNet 产品
+data-catalog instruments --source cloudnet
+```
+
+### 3. 探测数据可用性（实时 API 查询）
+
+检查指定站点在指定日期范围内，哪些仪器/产品实际有文件。
+
+```bash
+# ARM：查询 NSA 站点 1 天
+#（需要 ARM Token —— 通过 config.yaml 或 --token 设置）
+data-catalog probe --source arm --site nsa --start 2023-01-01 --end 2023-01-01
+
+# CloudNet：查询 Hyytiala 站点 3 天
+data-catalog probe --source cloudnet --site hyytiala --start 2023-06-01 --end 2023-06-03
+```
+
+**提示：** 探测功能会为每个仪器/产品发送一次 API 请求，建议使用较短的日期范围（1–3 天）进行快速检查。
+
+### 4. 按关键词搜索站点
+
+```bash
+data-catalog search alaska
+data-catalog search germany
+```
+
+### Python API
+
+```python
+from arm_cloudnet_fetcher import DataCatalog
+
+catalog = DataCatalog()
+
+# 列出站点
+arm_sites = catalog.list_arm_sites()
+cn_sites = catalog.list_cloudnet_sites()
+
+# 搜索
+results = catalog.search_site("alaska")
+
+# 探测 ARM 数据可用性
+info = catalog.probe_arm("nsa", "2023-01-01", "2023-01-03")
+print(info["available_datastreams"])
+
+# 探测 CloudNet 数据可用性
+info = catalog.probe_cloudnet("hyytiala", "2023-06-01", "2023-06-03")
+print(info["available_products"])
+```
+
+---
+
 ## 项目结构
 
 ```
@@ -140,6 +217,7 @@ arm-cloudnet-data-fetcher/
 │   ├── __init__.py
 │   ├── arm_fetcher.py        # ARM 数据获取器
 │   ├── cloudnet_fetcher.py   # CloudNet 数据获取器
+│   ├── catalog.py            # 数据目录 / 清单浏览器
 │   ├── config.py             # 配置管理
 │   ├── utils.py              # 工具函数（日志、重试、校验）
 │   └── cli.py                # 命令行入口

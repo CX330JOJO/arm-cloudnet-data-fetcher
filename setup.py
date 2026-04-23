@@ -32,6 +32,7 @@ setup(
         "console_scripts": [
             "arm-fetch=arm_cloudnet_fetcher.cli:arm_main",
             "cloudnet-fetch=arm_cloudnet_fetcher.cli:cloudnet_main",
+            "data-catalog=arm_cloudnet_fetcher.cli:catalog_main",
         ],
     },
 )

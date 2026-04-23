@@ -14,6 +14,7 @@ An open-source Python toolkit for automatically downloading global **ARM** (Atmo
 - **ARM Data Center** — Download cloud radar (Ka-band), lidar, microwave radiometer, ceilometer, and other products from ARM's global fixed and mobile sites.
 - **CloudNet Data Portal** — Fetch standardized cloud radar, lidar, and classification products from ACTRIS CloudNet sites across Europe and beyond.
 - **Batch & Date-Range Downloads** — Automatically iterate over date ranges and retry on transient failures.
+- **Data Catalog** — Quickly browse available sites, instruments, and probe data availability before downloading.
 - **CLI & Python API** — Use from the command line or import into your own scripts.
 - **Configurable** — YAML configuration + environment variable overrides.
 
@@ -132,6 +133,82 @@ More examples are in the [`examples/`](examples/) directory.
 
 ---
 
+## Data Catalog
+
+Not sure **where** the data is, **what** instruments are available, or **when** data exists? Use the built-in catalog tool before downloading.
+
+After `pip install -e .`, a new command `data-catalog` is available:
+
+### 1. List all sites
+
+```bash
+# All sites (ARM + CloudNet)
+data-catalog sites
+
+# Only ARM
+data-catalog sites --source arm
+
+# Only CloudNet
+data-catalog sites --source cloudnet
+```
+
+### 2. List instrument / product types
+
+```bash
+# ARM cloud-relevant instruments
+data-catalog instruments --source arm
+
+# CloudNet products
+data-catalog instruments --source cloudnet
+```
+
+### 3. Probe data availability (live API query)
+
+Check which instruments/products actually have files for a given site and date range.
+
+```bash
+# ARM: check NSA site for 1 day
+# (ARM token required — set via config.yaml or --token)
+data-catalog probe --source arm --site nsa --start 2023-01-01 --end 2023-01-01
+
+# CloudNet: check Hyytiala for 3 days
+data-catalog probe --source cloudnet --site hyytiala --start 2023-06-01 --end 2023-06-03
+```
+
+**Tip:** Use a short date range (1–3 days) for a quick check. The probe sends one API request per instrument/product.
+
+### 4. Search sites by keyword
+
+```bash
+data-catalog search alaska
+data-catalog search germany
+```
+
+### Python API
+
+```python
+from arm_cloudnet_fetcher import DataCatalog
+
+catalog = DataCatalog()
+
+# List sites
+arm_sites = catalog.list_arm_sites()
+cn_sites = catalog.list_cloudnet_sites()
+
+# Search
+results = catalog.search_site("alaska")
+
+# Probe ARM data availability
+info = catalog.probe_arm("nsa", "2023-01-01", "2023-01-03")
+print(info["available_datastreams"])
+
+# Probe CloudNet data availability
+info = catalog.probe_cloudnet("hyytiala", "2023-06-01", "2023-06-03")
+print(info["available_products"])
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -140,6 +217,7 @@ arm-cloudnet-data-fetcher/
 │   ├── __init__.py
 │   ├── arm_fetcher.py        # ARM data fetcher
 │   ├── cloudnet_fetcher.py   # CloudNet data fetcher
+│   ├── catalog.py            # Data catalog / inventory browser
 │   ├── config.py             # Configuration manager
 │   ├── utils.py              # Utilities (logging, retry, validation)
 │   └── cli.py                # Command-line entry points
